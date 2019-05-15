@@ -1,0 +1,470 @@
+---
+title: "Projeto_Final_Udacity"
+author: "Lauro Cavalcanti Dumbra"
+date: "13/05/2019"
+output: html_document
+---
+
+White Wine Analysis por Lauro Cavalcanti Dumbra
+========================================================
+
+```{r echo=FALSE, message=FALSE}
+#Carregando os pacotes
+library(ggplot2)
+library(knitr)
+library(dplyr)
+library(ggpubr)
+library(gridExtra)
+```
+
+```{r echo=FALSE, message=FALSE, Load_the_Data}
+# Carregamento dos dados
+data <- read.csv('wineQualityWhites.csv')
+
+#Removendo a coluna X (id)
+data <- subset(data, select = -c(X))
+
+#Adicionando a coluna 'quality' no tipo 'factor'
+data$quality_factor <- as.factor(data$quality)
+```
+
+# Exploração dos Dados
+
+```{r echo=FALSE, Univariate_Plots}
+#Resumos dos dados
+dim(data)
+names(data)
+str(data)
+summary(data)
+```
+
+<b>Observações iniciais</b><br>
+1 - Temos 13 variáveis e 4898 obervações.<br>
+2 - A qualidade de vinhos, variável-alvo, varia entre 3 e 9, sendo que a maior parte foi classificada em 6<br>
+3 - A maioria das colunas tem outliers, como por exemplo, 75% dos dados de 'residual.sugar'
+    estão abaixo de 9.9 e o valor máximo é de 65.8<br>
+4 - Todas as variáveis são numéricas, com exceção a quality_factor que foi adicionada.<br> 
+
+# Seção de Gráficos Univariados
+
+```{r echo=FALSE, warning=FALSE, Quality}
+#Salvando alguns dados estatísticos
+quality_min <- min(data$quality)
+quality_mean <- mean(data$quality)
+
+#Distribuição da qualidade de vinhos
+ggplot(data=data, aes(x=quality_factor)) +
+  geom_histogram(color='black', fill='white', stat='count') +
+  geom_vline(xintercept = quality_mean-2, linetype=1, color='blue', alpha=0.5) +
+  xlab("Quality") +
+  ylab("Count of wines")
+```
+
+<b>Quality</b><br>
+Valores entre 3 e 9<br>
+Os maiores picos são 5 e 6<br>
+Distribuição normal com média aproximada de 5.9<br>
+<br>
+
+```{r echo=FALSE, warning=FALSE, Alcohol_and_Fixed_Acidity}
+alcohol_hist <- ggplot(aes(alcohol), data = data) +
+                geom_histogram(binwidth = 0.1, colour="black", fill="white") +
+                scale_x_continuous(breaks = seq(8, 15, 1))
+ 
+fixed_acidity_hist <- ggplot(aes(x = fixed.acidity), data = data) +
+                      geom_histogram(binwidth = 0.1, colour="black", fill="white") +
+                      scale_x_continuous(breaks = seq(4, 10, 1), limits = c(4,10))
+
+grid.arrange(alcohol_hist, fixed_acidity_hist, ncol=2)
+
+summary(data$alcohol)
+summary(data$fixed.acidity)
+```
+
+<b>Alcohol</b><br>
+Varia entre 8 e 14.2<br>
+Os maiores picos estão entre 9 e 9.5<br>
+Distribuição normal enviesada para direita<br>
+<br>
+<b>Fixed Acidity</b><br>
+Varia entre 3.8 e 14.2<br>
+Distribuição normal com média de 6.855<br>
+
+
+```{r echo=FALSE,warning=FALSE, Sulphates_and_pH}
+sulphates_hist <- ggplot(aes(sulphates), data = data) +
+                  geom_histogram(binwidth = 0.01, colour="black", fill="white") +
+                  scale_x_continuous(breaks = seq(0.2, 1.1, 0.1))
+
+pH_hist <- ggplot(aes(x = pH), data = data) +
+           geom_histogram(binwidth = 0.02, colour="black", fill="white") +
+           scale_x_continuous(breaks = seq(2.7, 3.9, 0.1))
+
+grid.arrange(sulphates_hist, pH_hist, ncol=2)
+
+summary(data$sulphates)
+summary(data$pH)
+```
+
+<b>Sulphates</b><br>
+Os valores estão por volta de 0.45<br>
+Distribuição normal enviesada para direita<br>
+<br>
+<b>pH</b><br>
+Distribuição normal com média de 3.2<br>
+
+```{r echo=FALSE, warning=FALSE, Density_and_Total_Sufur_Oxide}
+density_hist <- ggplot(aes(density), data = data) +
+                geom_histogram(binwidth = 0.0001, colour="black", fill="white") +
+                scale_x_log10(breaks = seq(0.985,1.005, 0.002), limits = c(0.985,1.005))
+
+total_sufur_oxide_hist <- ggplot(aes(total.sulfur.dioxide), data = data) +
+                          geom_histogram(binwidth = 5, colour="black", fill="white") +
+                          scale_x_continuous(breaks = seq(0,275, 25), limits = c(0,275))
+
+grid.arrange(density_hist, total_sufur_oxide_hist, ncol=2)
+
+summary(data$density)
+summary(data$total.sulfur.dioxide)
+```
+
+<b>Density</b><br>
+Outliers acima de 1.01<br>
+Distribuição normal com média de 0.994<br>
+<br>
+<b>Total Sufur Dioxide</b><br>
+Outliers acima de 275<br>
+Metade dos valores entre 108 e 167<br>
+Distribuição normal com média de 138.4<br>
+
+```{r echo=FALSE, warning=FALSE, Free_Sufur_Dioxide_and_Chlorides}
+free_sulfur_dioxide_hist <- ggplot(aes(x = free.sulfur.dioxide), data = data) +
+                            geom_histogram(binwidth = 1, colour="black", fill="white") +
+                            scale_x_continuous(breaks = seq(0, 290, 10), limits = c(0,90))
+
+chlorides_hist <- ggplot(aes(x = chlorides), data = data) +
+                  geom_histogram(binwidth = 0.02, colour="black", fill="white") +
+                  scale_x_log10(breaks = c(0.01, 0.015, 0.02, 0.03, 0.05, 0.1, 0.2))
+
+grid.arrange(free_sulfur_dioxide_hist, chlorides_hist, ncol=2)
+
+summary(data$free.sulfur.dioxide)
+summary(data$chlorides)
+```
+
+<b>Free Sulfur Dioxide</b><br>
+Outliers acima de 90<br>
+Metade dos dados entre 23 e 46<br>
+Distribuição normal com média perto de 35<br>
+<br>
+<b>Chlorides</b><br>
+Quase metade dos dados entre 0.036 e 0.05<br>
+
+```{r echo=FALSE, warning=FALSE, Residual_Sugar_and_Citric_Acid}
+residual_sugar_hist <- ggplot(aes(x = residual.sugar), data = data) +
+                       geom_histogram(binwidth = 0.02, colour="black", fill="white") +
+                       scale_x_log10(breaks = c(1, 2, 5, 10, 20))
+
+citric_acid_hist <- ggplot(aes(x = citric.acid), data = data) +
+                    geom_histogram(binwidth = 0.01, colour="black", fill="white") +
+                    scale_x_continuous(breaks = seq(0, 1.7, 0.1), limits = c(0,0.75))
+
+grid.arrange(residual_sugar_hist, citric_acid_hist, ncol=2)
+
+summary(data$residual.sugar)
+summary(data$citric.acid)
+```
+
+<b>Residual Sugar</b><br>
+Os dados foram transformados para entender melhor a distribuição do açúcar residual<br>
+A distribuição transformada aparece bimodal com o preço chegando a cerca de 1,5 ou mais e novamente a 10 ou mais<br>
+<br>
+<b>Citric Acid</b><br>
+Outliers acima de 0.9<br>
+Metade dos dados entre 0.27 e 0.39<br>
+Distribuição normal com média perto de 0.33<br>
+
+```{r echo=FALSE, warning=FALSE, Volatile_Acidity}
+ggplot(aes(x = volatile.acidity), data = data) +
+geom_histogram(binwidth = 0.01, colour="black", fill="white") +
+scale_x_log10(breaks = seq(0, 1.1, 0.1))
+summary(data$volatile.acidity)
+```
+<b>Volatile Acidity</b><br>
+Os dados foram transformados para entender melhor a distribuição<br>
+A distribuição transformada parece normal, com o acúmulo de aproximadamente 0,25<br>
+<br>
+
+# Seção de Gráficos Bivariados
+
+<br>
+<b>Correlação das variáveis com a qualidade</b><br>
+<br>
+
+```{r echo=FALSE, warning=FALSE, Correlation}
+#Verificando as correlações com a variável-alvo quality
+cor(x=data[0:12], y=data$quality)
+```
+Neste relatório iremos focar a correlação das variáveis com a variável-alvo (quality).<br>
+Os maiores valores são:<br>
+alcohol = 0.435574715<br>
+density = -0.307123313<br>
+chlorides = -0.209934411<br>
+volatile.acidity = -0.194722969<br>
+
+<b>Alcohol</b>
+
+```{r echo=FALSE, warning=FALSE, alcohol_corr}
+#Resumo da variável alcool
+summary(data$alcohol)
+
+#Salvando média e mediana
+alcohol_mean <- mean(data$alcohol)
+alcohol_median <- median(data$alcohol)
+
+#Verificando a média de alcool em cada nível de qualidade - tabela
+tapply(data$alcohol, data$quality, mean)
+
+#Verificando a média de alcool em cada nível de qualidade - gráfico
+ggplot(data=data, aes(x=quality_factor, y=alcohol)) +
+  geom_boxplot() +
+  geom_hline(show.legend = T, yintercept=alcohol_mean, linetype='longdash', alpha=0.5, color='blue') +
+  geom_vline(xintercept = quality_mean-quality_min+1, linetype='longdash', alpha=0.5, color='blue') +
+  xlab("Quality") +
+  ylab("Alcohol")
+
+#Verificando a média de alcool em cada nível de qualidade - gráfico
+ggplot(data=data, aes(x=as.numeric(quality), y=alcohol)) +
+  geom_jitter(alpha=0.3) +
+  geom_smooth(method='lm', aes(group = 1))+
+  geom_hline(yintercept = alcohol_mean, linetype='longdash', alpha=0.5, color='blue') +
+  geom_vline(xintercept = quality_mean, linetype='longdash', alpha=0.5, color='blue') +
+  xlab("Quality") +
+  ylab("Alcohol")
+```
+<br>
+Os vinhos com qualidade acima da média tem mais alcool que a média geral (10.51).<br>
+<br>
+
+<b>Density</b>
+
+```{r echo=FALSE, warning=FALSE, density_corr}
+#Resumo da variável density
+summary(data$density)
+
+#Salvando média e mediana
+density_mean <- mean(data$density)
+density_median <- median(data$density)
+
+#Verificando a média da densidade em cada nível de qualidade - tabela
+tapply(data$density, data$quality, mean)
+
+#Verificando a média da densidade em cada nível de qualidade - grafico
+ggplot(data=data, aes(x=quality_factor, y=density)) +
+  geom_boxplot() +
+  geom_hline(show.legend = T, yintercept=density_mean, linetype='longdash', alpha=0.5, color='blue') +
+  geom_vline(xintercept = quality_mean-quality_min+1, linetype='longdash', alpha=0.5, color='blue') +
+  xlab("Quality") +
+  ylab("Density")
+
+#Verificando a média da densidade em cada nível de qualidade - grafico
+ggplot(data=data, aes(x=as.numeric(quality), y=density)) +
+  geom_jitter(alpha=0.3) +
+  geom_smooth(method='lm', aes(group = 1))+
+  geom_hline(yintercept = density_mean, linetype='longdash', alpha=0.5, color='blue') +
+  geom_vline(xintercept = quality_mean, linetype='longdash', alpha=0.5, color='blue') +
+  xlab("Quality") +
+  ylab("Density")
+```
+<br>
+Os vinhos com qualidade acima da média tem menos densidade que a média geral (0.994).<br>
+<br>
+
+<b>Chlorides</b>
+
+```{r echo=FALSE, warning=FALSE, chloride_corr}
+#Resumo da variável chlorides
+summary(data$chlorides)
+
+#Salvando variáveis
+chlorides_mean <- mean(data$chlorides)
+chlorides_median <- median(data$chlorides)
+chlorides_sd <- sd(data$chlorides)
+chlorides_max <- max(data$chlorides)
+chlorides_out <- (chlorides_max - chlorides_mean) / chlorides_sd
+
+#Verificando a média de chlorides em cada nível de qualidade - tabela
+tapply(data$chlorides, data$quality, mean)
+
+#Verificando a média de chlorides em cada nível de qualidade - grafico
+ggplot(data=data, aes(x=quality_factor, y=chlorides)) +
+  geom_boxplot() +
+  geom_hline(show.legend = T, yintercept=chlorides_mean, linetype='longdash', alpha=0.5, color='blue') +
+  geom_vline(xintercept = quality_mean-quality_min+1, linetype='longdash', alpha=0.5, color='blue') +
+  xlab("Quality") +
+  ylab("Chlorides")
+
+#Verificando a média de chlorides em cada nível de qualidade - grafico
+ggplot(data=data, aes(x=as.numeric(quality), y=chlorides)) +
+  geom_jitter(alpha=0.3) +
+  geom_smooth(method='lm', aes(group = 1))+
+  geom_hline(yintercept = chlorides_mean, linetype='longdash', alpha=0.5, color='blue') +
+  geom_vline(xintercept = quality_mean, linetype='longdash', alpha=0.5, color='blue') +
+  xlab("Quality") +
+  ylab("Chlorides")
+```
+<br>
+Os vinhos com qualidade acima da média tem menos chlorides que a média geral (0.04577).<br>
+Essa variável possui um número considerável de outliers.<br>
+<br>
+
+<b>Volatile Acidity</b>
+
+```{r echo=FALSE, warning=FALSE, volatile_acidity_corr}
+#Resumo da variável volatile.acidity
+summary(data$volatile.acidity)
+
+#Salvando variáveis
+volatile.acidity_mean <- mean(data$volatile.acidity)
+volatile.acidity_median <- median(data$volatile.acidity)
+volatile.acidity_sd <- sd(data$volatile.acidity)
+volatile.acidity_max <- max(data$volatile.acidity)
+volatile.acidity_out <- (volatile.acidity_max - volatile.acidity_mean) / volatile.acidity_sd
+
+#Verificando a média de volatile acidity em cada nível de qualidade - tabela
+tapply(data$volatile.acidity, data$quality, mean)
+
+#Verificando a média de volatile acidity em cada nível de qualidade - grafico
+ggplot(data=data, aes(x=quality_factor, y=volatile.acidity)) +
+  geom_boxplot() +
+  geom_hline(show.legend = T, yintercept=volatile.acidity_mean, linetype='longdash', alpha=0.5, color='blue') +
+  geom_vline(xintercept = quality_mean-quality_min+1, linetype='longdash', alpha=0.5, color='blue') +
+  xlab("Quality") +
+  ylab("Volatile Acidity")
+
+#Verificando a média de volatile acidity em cada nível de qualidade - grafico
+ggplot(data=data, aes(x=as.numeric(quality), y=volatile.acidity)) +
+  geom_jitter(alpha=0.3) +
+  geom_smooth(method='lm', aes(group = 1))+
+  geom_hline(yintercept = volatile.acidity_mean, linetype='longdash', alpha=0.5, color='blue') +
+  geom_vline(xintercept = quality_mean, linetype='longdash', alpha=0.5, color='blue') +
+  xlab("Quality") +
+  ylab("Volatile Acidity")
+```
+<br>
+Os vinhos com qualidade acima da média tem menos acidez volátil que a média geral (0.2782).<br>
+Essa variável possui um número considerável de outliers.<br>
+<br>
+
+# Seção de Gráficos Multivariados
+
+<br>
+<b>Densidade x Alcool com Qualidade</b><br>
+<br>
+
+```{r echo=FALSE, warning=FALSE, alcohol_density_quality}
+ggplot(aes(x = density, y = alcohol, color = quality_factor), data = data) +
+   geom_point(alpha = 0.5, size = 1, position = 'jitter') +
+   coord_cartesian(xlim = c(quantile(data$density, .01),
+                            quantile(data$density, .99))) +
+   geom_smooth(method = "lm", se = FALSE) +
+   facet_wrap(~quality_factor) +
+   ggtitle('Quality by Density')
+```
+<br>
+Notamos que em todos os níveis de qualidade à medida que a densidade aumenta, o percentual de alcool diminui.<br>
+<br>
+
+<br>
+<b>Chlorides x Volatile Acidity com Qualidade</b><br>
+<br>
+
+```{r echo=FALSE, warning=FALSE, chlorides_alcohol_quality}
+ ggplot(aes(x = chlorides, y = volatile.acidity, color = quality_factor), data = data) +
+   geom_point(alpha = 0.5, size = 1, position = 'jitter') +
+   coord_cartesian(xlim = c(quantile(data$chlorides, .01),
+                            quantile(data$chloride, .99))) +
+   geom_smooth(method = "lm", se = FALSE) +
+   facet_wrap(~quality_factor) +
+   ggtitle('Quality by Chlorides')
+```
+<br>
+Notamos a mudança de comportamento à medida que o nível de qualidade aumenta.<br>
+Entre os níveis 3 e 5 o comportamento é crescente, ou seja, chlorides aumenta e volatile acidity também.<br>
+A partir do nível 6, a relação é decrescente, ou seja, chlorides aumenta e volatile acidity diminuis.<br>
+<br>
+
+# Gráficos Finais e Sumário
+
+### Primeiro Gráfico
+
+<br>
+
+```{r echo=FALSE, warning=FALSE, plot_one}
+ggplot(data=data, aes(x=quality_factor)) +
+  geom_histogram(color='black', fill='blue', stat='count') +
+  xlab("Quality (0 to 10)") +
+  ylab("Wine's samples") +
+  ggtitle('Distribution of wine quality')
+```
+
+### Descrição do Primeiro Gráfico
+
+<br>
+Verificamos que a maioria dos vinhos brancos obteve nota 6, 5 e 7 (respectivamente).<br>
+<br>
+
+### Segundo Gráfico
+
+<br>
+
+```{r echo=FALSE, warning=FALSE, plot_two}
+ggplot(data=data, aes(x=quality_factor, y=alcohol, fill=quality)) +
+  geom_boxplot() +
+  geom_hline(show.legend = T, yintercept=alcohol_mean, linetype='longdash', alpha=0.5, color='blue') +
+  geom_vline(xintercept = quality_mean-quality_min+1, linetype='longdash', alpha=0.5, color='blue') +
+  xlab("Quality (0 a 10)") +
+  ylab("Alcohol (% by volume)") +
+  ggtitle('Quality X Alcohol')
+```
+
+### Descrição do Segundo Gráfico
+<br>
+O boxplot nos mostra a relação entre alcool e qualidade e nos permite avaliar essa relação de forma mais precisa, mostrando que, à medida que a qualidade aumenta de 3 para 5, o nível médio de álcool na verdade diminui. No entanto, à medida que a qualidade aumenta acima de 5, o nível mediano de álcool aumenta constantemente de 9,5% para 12,5%.<br>
+0% de álcool acima de certos limiares terá impacto negativo na qualidade do vinho.<br>
+<br>
+
+### Terceiro Gráfico
+
+<br>
+
+```{r echo=FALSE, warning=FALSE, plot_three}
+ggplot(aes(x = density, y = alcohol, color = quality_factor), data = data) +
+   geom_point(alpha = 0.5, size = 1, position = 'jitter') +
+   coord_cartesian(xlim = c(quantile(data$density, .01),
+                            quantile(data$density, .99))) +
+   geom_smooth(method = "lm", se = FALSE) +
+   facet_wrap(~quality_factor) +
+   ggtitle('Quality by Density') +
+   xlab('Density (g/cm³)') +
+   ylab('Alcohol (% by volume)')
+```
+
+### Descrição do Terceiro Gráfico
+<br>
+Álcool e Densidade são as variáveis com maior correlação com a variável-alvo: qualidade.<br>
+Notamos que o comportamento entre essas variáveis é a mesma em todos os níveis de qualidade.<br>
+À medida que o valor da densidade aumenta, o valor do alcool diminui.
+<br>
+
+# Reflexão
+<br>
+O primeiro passo para começar a análise foi entender como era o formato dos dados.<br>
+O conjunto de dados era composto por 4898 observações e 12 variáveis, mas logo de cara foi removido a variável X por se tratar apenas do número de linhas. Os dados eram todos numéricos e como a variável-alvo (qualidade) deveria ser tratada como uma categoria, foi adicionada uma nova variável no tipo Factor.<br>
+<br>
+Ao longo de cada sessão foi verificado como era o comportamento de cada variável no conjunto de dados e descobrir quais tinham a maior correlação com a qualidade.<br>
+Com a ajuda das visualizações foi muito importante ver e mostrar o comportamento da qualidade de acordo com as variáveis que tem maior correlação.<br>
+<br>
+A maior dificuldade foi encontrar quais gráficos deveriam ser usados em cada análise e também como torná-los melhores visualmente.<br>
+<br>
+Em uma próxima análise devemos observar com maior foco outros fatores para verificar com mais clareza o que interfere mais na classificação dos vinhos.
